@@ -1,0 +1,110 @@
+# Contract tests against the live EWDS and Open-Meteo (tests/test_live.py):
+# every trap in the README was measured once, on a date, and the synthetic
+# files of the other tests cannot notice when one moves. Weekly, and on
+# demand. A failure opens (or comments on) an issue labelled `live-api`;
+# with an ANTHROPIC_API_KEY secret, Claude reads the log and adds a
+# diagnosis to that issue. It never pushes code.
+#
+# Repository secrets: CDSAPI_KEY (an EWDS key with the licences of
+# cems-glofas-historical, cems-glofas-forecast and cems-fire-historical-v1
+# accepted) and, optionally, ANTHROPIC_API_KEY.
+name: live
+
+on:
+  schedule:
+    - cron: "41 5 * * 2"  # Tuesdays, 05:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    # The EWDS is a queue: six small requests can wait for many minutes.
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --locked --extra ewds
+      - name: Live contract tests
+        env:
+          GLOFAS_EWDS_LIVE: "1"
+          CDSAPI_URL: https://ewds.climate.copernicus.eu/api
+          CDSAPI_KEY: ${{ secrets.CDSAPI_KEY }}
+        run: |
+          set -o pipefail
+          uv run pytest -m live --no-cov -v -p no:cacheprovider 2>&1 | tee live.log
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: live-log
+          path: live.log
+
+  report:
+    needs: contract
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      HAS_CLAUDE: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: live-log
+        continue-on-error: true
+      - name: Open or update the issue
+        id: issue
+        run: |
+          gh label create live-api --repo "$GITHUB_REPOSITORY" --color B60205 \
+            --description "Live contract tests failed" 2>/dev/null || true
+          summary=$(grep -E "^(FAILED|ERROR)|^E  " live.log 2>/dev/null | head -40 || true)
+          open=$(gh issue list --repo "$GITHUB_REPOSITORY" --label live-api --state open \
+            --json number --jq '.[0].number // empty')
+          body="Failed: $RUN_URL
+
+          \`\`\`
+          ${summary:-no log}
+          \`\`\`"
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            open=$(gh issue create --repo "$GITHUB_REPOSITORY" --label live-api \
+              --title "Live contract tests failed" \
+              --body "A fact the readers rely on has moved: the cell Open-Meteo serves, the model version, the history latency, the forecast file or the FWI names. Each assertion says which, and what to change.
+
+          $body" | grep -oE '[0-9]+$')
+          fi
+          echo "number=$open" >> "$GITHUB_OUTPUT"
+      - name: Diagnosis by Claude
+        if: env.HAS_CLAUDE == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          claude_args: --allowedTools "Read,Grep,Glob,Bash(gh issue comment:*)"
+          prompt: |
+            The weekly live contract tests of glofas-ewds failed. The pytest log is
+            in live.log; the tests are tests/test_live.py; the facts they check are
+            "The traps we already fell into" in README.md and the module docstrings
+            of src/glofas_ewds/cells.py and request.py.
+
+            For each failing test say, from the numbers in the log: which measured
+            fact moved (or whether it is a transient: queue timeout, 5xx, licence
+            403), the evidence, and the smallest change to the package that would
+            restore it, naming file and constant. Do not guess beyond the log; say
+            "not enough evidence" when that is the case. Remember that a change to
+            the cell, the version or the reader changes every reference already
+            computed downstream (Limen's glofas_riferimento), so say so when it does.
+
+            Post the result as one comment on issue #${{ steps.issue.outputs.number }}
+            of ${{ github.repository }} with `gh issue comment`. Do not edit files.

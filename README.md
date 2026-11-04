@@ -213,6 +213,18 @@ fire_values(files, nodes)  # {(node, day): {"fwi": ..., "ffmc": ..., "dc": ...}}
 10. **Absent is not zero.** A node outside the file or on a masked cell (sea,
     no river network) gets no value. `discharge_ratio` returns `None` when it
     does not know how big the river is, never a reassuring 0.
+11. **Open-Meteo's recent history is its forecast archive.** Its
+    `consolidated_v4` model stops in 2024 (on 4 November 2026 it answered
+    `null` for June 2025); after that the default `seamless_v4` series is
+    `forecast_v4` day after day, not the reanalysis. At Faenza on 1 January
+    2025 that is 5.55 m³/s against 4.75 consolidated. A reference from the EWDS
+    consolidated history and one from Open-Meteo's recent history are not the
+    same series: compare them on consolidated days only.
+
+These are measurements, each with its date, not promises from Copernicus or
+Open-Meteo. `tests/test_live.py` measures them again every week against the
+real services ([`live.yml`](.github/workflows/live.yml)); a failure opens an
+issue whose assertion says which fact moved and what to change.
 
 ## API at a glance
 
@@ -236,6 +248,7 @@ uv sync
 make check   # ruff, mypy --strict, pytest with coverage
 make docs    # the documentation site, built with --strict
 uv run --group docs python docs/make_images.py   # the README figures
+GLOFAS_EWDS_LIVE=1 CDSAPI_KEY=... uv run --extra ewds pytest -m live --no-cov   # the traps, live
 ```
 
 ## Data licence and credits

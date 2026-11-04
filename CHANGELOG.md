@@ -6,6 +6,17 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Live contract tests (`tests/test_live.py`, marker `live`, `GLOFAS_EWDS_LIVE=1`
+  and an EWDS key): the cell one step east, the same numbers as Open-Meteo's
+  `consolidated_v4`, the history latency and the intermediate fallback, the
+  shape of the forecast file, the FWI names. Weekly in CI (`live.yml`); a
+  failure opens an issue, and with an `ANTHROPIC_API_KEY` secret Claude adds
+  a diagnosis from the log.
+- README trap 11: Open-Meteo's history after 2024 is its forecast archive,
+  not the reanalysis.
+
 ## [0.1.0] - 2026-11-04
 
 ### Added
