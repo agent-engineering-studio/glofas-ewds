@@ -16,6 +16,20 @@ All notable changes to this project are documented here. The format follows
   a diagnosis from the log.
 - README trap 11: Open-Meteo's history after 2024 is its forecast archive,
   not the reanalysis.
+- The ensemble: `forecast_request(product=ENSEMBLE)`, `download_ensemble`,
+  `EwdsClient.ensemble`, `ensemble_members` (member, lead time) per node, and
+  the pure `exceedance_probability` / `exceedance_by_lead`.
+- Return levels from a node's own reanalysis: `discharge_by_day`,
+  `annual_maxima`, `gumbel_fit` (L-moments), `return_level`, `return_levels`.
+  Not the official GloFAS thresholds, which the EWDS does not serve.
+
+### Changed
+
+- Forecast files are read by the names of their dimensions (member, lead
+  time, run, latitude, longitude), so the control run and the ensemble share
+  one reader; a 4-D file with unknown names is read as before, by position,
+  and anything else raises `GlofasEwdsError` naming its dimensions.
+  `forecast_peaks` on an ensemble file is the peak over all members.
 
 ## [0.1.0] - 2026-11-04
 

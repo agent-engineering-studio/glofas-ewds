@@ -13,7 +13,8 @@ Three choices matter more than they look:
   months late; the recent months exist only as ``intermediate``, the same
   model and version. :func:`historical_request` takes the product.
 * **The control run.** The forecast dataset holds an ensemble; the control
-  run is the one Open-Meteo serves as ``forecast_v4``.
+  run is the one Open-Meteo serves as ``forecast_v4``. The 50 perturbed
+  members (:data:`ENSEMBLE`) say how likely a peak is, which one run cannot.
 """
 
 from __future__ import annotations
@@ -32,6 +33,9 @@ GLOFAS_VERSION: Final = "version_4_0"
 HISTORY_LATENCY_DAYS: Final = 4
 #: Days of forecast to ask for, one value per 24 hours of lead time.
 FORECAST_DAYS: Final = 7
+#: The ``product_type`` of the single control run, and of the perturbed members.
+CONTROL: Final = "control_forecast"
+ENSEMBLE: Final = "ensemble_perturbed_forecasts"
 
 #: North, west, south, east in degrees, the order the EWDS wants.
 Area = tuple[float, float, float, float]
@@ -88,12 +92,18 @@ def historical_request(
     }
 
 
-def forecast_request(run: date, *, days: int = FORECAST_DAYS, area: Area = ITALY) -> dict[str, Any]:
-    """The control run of ``run`` (00 UTC), one step per 24 hours of lead time."""
+def forecast_request(
+    run: date, *, days: int = FORECAST_DAYS, area: Area = ITALY, product: str = CONTROL
+) -> dict[str, Any]:
+    """The run of ``run`` (00 UTC), one step per 24 hours of lead time.
+
+    ``product`` is :data:`CONTROL` (one run, what Open-Meteo serves) or
+    :data:`ENSEMBLE` (the 50 perturbed members: about 50 times the size).
+    """
     return {
         "system_version": ["operational"],
         "hydrological_model": ["lisflood"],
-        "product_type": ["control_forecast"],
+        "product_type": [product],
         "variable": ["river_discharge_in_the_last_24_hours"],
         "year": [str(run.year)],
         "month": [f"{run.month:02d}"],
@@ -118,6 +128,8 @@ def candidate_runs(today: date, *, latest_saved: date | None = None) -> list[dat
 
 
 __all__ = [
+    "CONTROL",
+    "ENSEMBLE",
     "FORECAST_DATASET",
     "FORECAST_DAYS",
     "FORECAST_VARIABLE",

@@ -20,6 +20,8 @@ from typing import Any, Protocol
 
 from glofas_ewds.fwi import FIRE_DATASET, FIRE_VERSION, fire_request
 from glofas_ewds.request import (
+    CONTROL,
+    ENSEMBLE,
     FORECAST_DATASET,
     GLOFAS_VERSION,
     HISTORICAL_DATASET,
@@ -101,13 +103,23 @@ def download_history(
     )
 
 
+def _run(folder: Path, run: date, *, client: Retriever, area: Area, product: str) -> Path:
+    folder.mkdir(parents=True, exist_ok=True)
+    kind = "forecast" if product == CONTROL else "ensemble"
+    target = folder / f"glofas_{kind}_{run.isoformat()}{_area_tag(area)}.nc"
+    if not target.exists():
+        _fetch(client, FORECAST_DATASET, forecast_request(run, area=area, product=product), target)
+    return target
+
+
 def download_forecast(folder: Path, run: date, *, client: Retriever, area: Area = ITALY) -> Path:
     """The control forecast of ``run``, one NetCDF."""
-    folder.mkdir(parents=True, exist_ok=True)
-    target = folder / f"glofas_forecast_{run.isoformat()}{_area_tag(area)}.nc"
-    if not target.exists():
-        _fetch(client, FORECAST_DATASET, forecast_request(run, area=area), target)
-    return target
+    return _run(folder, run, client=client, area=area, product=CONTROL)
+
+
+def download_ensemble(folder: Path, run: date, *, client: Retriever, area: Area = ITALY) -> Path:
+    """The 50 perturbed members of ``run``, one NetCDF (about 90 MB for Italy)."""
+    return _run(folder, run, client=client, area=area, product=ENSEMBLE)
 
 
 def download_fire(
@@ -127,4 +139,10 @@ def download_fire(
     )
 
 
-__all__ = ["Retriever", "download_fire", "download_forecast", "download_history"]
+__all__ = [
+    "Retriever",
+    "download_ensemble",
+    "download_fire",
+    "download_forecast",
+    "download_history",
+]

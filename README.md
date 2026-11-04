@@ -174,6 +174,31 @@ files = await ewds.fire(date(2025, 6, 1), date(2025, 9, 30))
 fire_values(files, nodes)  # {(node, day): {"fwi": ..., "ffmc": ..., "dc": ...}}
 ```
 
+**How sure is the peak.** The control run is one future; the 50 perturbed
+members of the same run say how likely it is. Against the node's own
+reference:
+
+```python
+path = await ewds.ensemble(run)  # ~90 MB for Italy: pass a smaller area= if you can
+for node, members in ensemble_members(path, NODES).items():  # (member, lead time)
+    print(
+        node,
+        exceedance_probability(members, ref[node]),  # 0.62: 31 of 50 members
+        exceedance_by_lead(members, ref[node]),
+    )  # [0.0, 0.1, 0.62, ...]: when
+```
+
+**The 2-, 5-, 20-year flow.** The EWDS does not serve GloFAS's flood
+thresholds; fit them on the node's own reanalysis, which starts in 1979. These
+are your levels, by a Gumbel on annual maxima, not the official ones:
+
+```python
+start, end = date(1980, 1, 1), date(2024, 12, 31)  # 540 monthly files, once
+by_day = discharge_by_day(await ewds.history(start, end), NODES, start=start, end=end)
+levels = {n: return_levels(annual_maxima(d).values()) for n, d in by_day.items()}
+# {(11.88, 44.29): {2: ..., 5: ..., 20: ...}}; None below 20 complete years
+```
+
 ## The traps we already fell into
 
 1. **Open-Meteo's numbers belong to the cell one step east.** Open-Meteo
@@ -223,7 +248,7 @@ fire_values(files, nodes)  # {(node, day): {"fwi": ..., "ffmc": ..., "dc": ...}}
 
 These are measurements, each with its date, not promises from Copernicus or
 Open-Meteo. `tests/test_live.py` measures them again every week against the
-real services ([`live.yml`](.github/workflows/live.yml)); a failure opens an
+real services ([`live.yml`](https://github.com/agent-engineering-studio/glofas-ewds/blob/main/.github/workflows/live.yml)); a failure opens an
 issue whose assertion says which fact moved and what to change.
 
 ## API at a glance
@@ -236,6 +261,9 @@ issue whose assertion says which fact moved and what to change.
 | `EwdsClient(folder, *, url=None, key=None, retriever=None, area=ITALY)` | the same downloads, async, plus `latest_forecast()` |
 | `discharge_series`, `forecast_peaks`, `fire_values` | NetCDF to numbers per node (extra `netcdf`) |
 | `percentile`, `references`, `discharge_ratio` | a river's own reference, and how far above it a forecast is |
+| `download_ensemble`, `EwdsClient.ensemble`, `ensemble_members` | the 50 perturbed members, as (member, lead time) per node |
+| `exceedance_probability`, `exceedance_by_lead` | the share of members over a threshold, in all and per lead time |
+| `discharge_by_day`, `annual_maxima`, `return_levels` | the 2-, 5-, 20-year flow of a node, from its own reanalysis |
 | `candidate_runs(today, latest_saved=None)` | the forecast runs worth trying, newest first |
 | `GlofasEwdsError` | the package's exception |
 

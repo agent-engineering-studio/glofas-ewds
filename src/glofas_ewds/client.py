@@ -15,7 +15,13 @@ import asyncio
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-from glofas_ewds.download import Retriever, download_fire, download_forecast, download_history
+from glofas_ewds.download import (
+    Retriever,
+    download_ensemble,
+    download_fire,
+    download_forecast,
+    download_history,
+)
 from glofas_ewds.errors import GlofasEwdsError
 from glofas_ewds.request import ITALY, Area, candidate_runs
 
@@ -72,6 +78,12 @@ class EwdsClient:
         """The control forecast file of ``run``; see :func:`download_forecast`."""
         return await asyncio.to_thread(
             download_forecast, self.folder / "forecast", run, client=self.retriever, area=self.area
+        )
+
+    async def ensemble(self, run: date) -> Path:
+        """The perturbed members of ``run``; see :func:`download_ensemble`."""
+        return await asyncio.to_thread(
+            download_ensemble, self.folder / "ensemble", run, client=self.retriever, area=self.area
         )
 
     async def latest_forecast(
