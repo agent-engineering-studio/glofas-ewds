@@ -1,0 +1,90 @@
+[project]
+name = "glofas-ewds"
+version = "0.1.0"
+description = "GloFAS river discharge and Copernicus fire danger from the EWDS, on the right grid cell"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Giuseppe Zileni", email = "giuseppe.zileni@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Hydrology",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Typing :: Typed",
+]
+keywords = ["glofas", "copernicus", "ewds", "river discharge", "flood", "fire weather index", "cems"]
+dependencies = [
+    "numpy>=2.0",
+]
+
+[project.optional-dependencies]
+ewds = ["cdsapi>=0.7"]
+netcdf = ["netCDF4>=1.7"]
+
+[project.urls]
+Homepage = "https://github.com/agent-engineering-studio/glofas-ewds"
+Issues = "https://github.com/agent-engineering-studio/glofas-ewds/issues"
+Changelog = "https://github.com/agent-engineering-studio/glofas-ewds/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.13",
+    "netCDF4>=1.7",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.26",
+    "matplotlib>=3.8",
+    "httpx>=0.27",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "ARG", "PTH", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"docs/make_images.py" = ["E501"]
+"tests/**" = ["ARG", "B018"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src", "tests"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = ["netCDF4", "cdsapi"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["glofas_ewds"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
