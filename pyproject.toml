@@ -1,6 +1,6 @@
 [project]
 name = "glofas-ewds"
-version = "0.1.0"
+version = "0.2.0"
 description = "GloFAS river discharge and Copernicus fire danger from the EWDS, on the right grid cell"
 readme = "README.md"
 requires-python = ">=3.12"

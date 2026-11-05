@@ -43,7 +43,7 @@ from glofas_ewds.return_period import (
     return_levels,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "CONTROL",
