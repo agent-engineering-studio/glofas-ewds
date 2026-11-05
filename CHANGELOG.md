@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-05
+
+> The layout of the EWDS ensemble file is not yet measured live: the reader
+> finds the member axis by name, and the weekly `live.yml` checks it once an
+> EWDS key is set. The control run is unchanged from 0.1.
+
 ### Added
 
 - Live contract tests (`tests/test_live.py`, marker `live`, `GLOFAS_EWDS_LIVE=1`
