@@ -8,9 +8,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [0.2.0] - 2026-11-05
 
-> The layout of the EWDS ensemble file is not yet measured live: the reader
-> finds the member axis by name, and the weekly `live.yml` checks it once an
-> EWDS key is set. The control run is unchanged from 0.1.
+> Released before the first live run. On 2026-11-05 `live.yml` passed against
+> the real EWDS, including the ensemble file. The control run is unchanged
+> from 0.1.
 
 ### Added
 
