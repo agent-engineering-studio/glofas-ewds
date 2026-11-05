@@ -65,6 +65,8 @@ nav:
       - GloFAS readers: api/glofas.md
       - Fire danger (FWI): api/fwi.md
       - Reference and ratio: api/reference.md
+      - Ensemble: api/ensemble.md
+      - Return periods: api/return_period.md
       - Errors: api/errors.md
   - Changelog: changelog.md
   - Contributing: contributing.md

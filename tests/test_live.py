@@ -15,8 +15,9 @@ not skip, without it:
 
     GLOFAS_EWDS_LIVE=1 CDSAPI_KEY=... uv run pytest -m live --no-cov -v
 
-About six EWDS requests, each a day of Italy (a few hundred kB), plus one
-Open-Meteo call. The EWDS queue makes the run take minutes, not seconds.
+About seven EWDS requests, each a day of Italy (a few hundred kB) or the
+ensemble of a small box, plus one Open-Meteo call. The EWDS queue makes the
+run take minutes, not seconds.
 """
 
 from __future__ import annotations
@@ -43,8 +44,11 @@ from glofas_ewds import (
     cdsapi_client,
     declared_cell,
     discharge_series,
+    download_ensemble,
     download_fire,
     download_history,
+    ensemble_members,
+    exceedance_probability,
     fire_values,
     forecast_peaks,
     open_meteo_cell,
@@ -210,6 +214,26 @@ async def test_the_latest_forecast_is_a_control_run_of_seven_days(
         )
     peaks = forecast_peaks(path, NODES)
     assert len(peaks) >= len(NODES) // 2, f"peaks for only {sorted(peaks)}"
+
+
+async def test_the_ensemble_has_fifty_members_a_reader_can_find(
+    client: Recorder, folder: Path
+) -> None:
+    run = datetime.now(UTC).date() - timedelta(days=2)
+    # Around the Lamone only: the ensemble of Italy is ~90 MB.
+    area = (44.5, 11.6, 44.0, 12.2)
+    path = download_ensemble(folder / "ensemble", run, client=client, area=area)
+    netcdf4 = pytest.importorskip("netCDF4")
+    with netcdf4.Dataset(path) as ds:
+        dims = ds.variables["dis24"].dimensions
+    members = ensemble_members(path, [(11.88, 44.29)])
+    assert members, f"no member read from a file with dimensions {dims}"
+    (cube,) = members.values()
+    assert cube.shape == (50, 7), (
+        f"members {cube.shape} from dimensions {dims}: the member axis has another "
+        "name (glofas._MEMBER) or the EWDS changed the ensemble size"
+    )
+    assert exceedance_probability(cube, float(np.nanmedian(cube))) is not None
 
 
 def test_the_fire_file_still_names_every_component(client: Recorder, folder: Path) -> None:
