@@ -1,0 +1,78 @@
+# The documentation site, built with Zensical (https://zensical.org):
+#   uv run --group docs zensical serve
+[project]
+site_name = "glofas-ewds"
+site_description = "GloFAS river discharge and the Copernicus Fire Weather Index from the EWDS, read on the right grid cell"
+site_url = "https://agentengineering.it/glofas-ewds/"
+repo_url = "https://github.com/agent-engineering-studio/glofas-ewds"
+repo_name = "agent-engineering-studio/glofas-ewds"
+edit_uri = "edit/main/docs/"
+copyright = "Code Apache-2.0. GloFAS and fire danger data: Copernicus Emergency Management Service, under the CEMS-FLOODS and dataset licences. Not a flood warning."
+exclude_docs = "make_images.py"
+
+nav = [
+  { "Home" = "index.md" },
+  { "API reference" = [
+    { "Cells" = "api/cells.md" },
+    { "Requests" = "api/request.md" },
+    { "Downloads" = "api/download.md" },
+    { "Client" = "api/client.md" },
+    { "GloFAS readers" = "api/glofas.md" },
+    { "Fire danger (FWI)" = "api/fwi.md" },
+    { "Reference and ratio" = "api/reference.md" },
+    { "Ensemble" = "api/ensemble.md" },
+    { "Return periods" = "api/return_period.md" },
+    { "Errors" = "api/errors.md" },
+  ] },
+  { "Changelog" = "changelog.md" },
+  { "Contributing" = "contributing.md" },
+]
+
+[project.theme]
+features = [
+  "navigation.sections",
+  "navigation.top",
+  "content.code.copy",
+  "search.highlight",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "blue"
+toggle.icon = "material/weather-night"
+toggle.name = "Dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "blue"
+toggle.icon = "material/weather-sunny"
+toggle.name = "Light mode"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_root_heading = true
+show_source = false
+members_order = "source"
+separate_signature = true
+show_signature_annotations = true
+filters = ["!^_"]
+
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.md_in_html]
+[project.markdown_extensions.tables]
+[project.markdown_extensions.toc]
+permalink = true
+[project.markdown_extensions."pymdownx.highlight"]
+[project.markdown_extensions."pymdownx.inlinehilite"]
+[project.markdown_extensions."pymdownx.snippets"]
+base_path = ["."]
+check_paths = true
+[project.markdown_extensions."pymdownx.superfences"]
+custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
