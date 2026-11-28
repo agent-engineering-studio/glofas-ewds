@@ -22,6 +22,7 @@ nav = [
     { "Reference and ratio" = "api/reference.md" },
     { "Ensemble" = "api/ensemble.md" },
     { "Return periods" = "api/return_period.md" },
+    { "Official thresholds" = "api/thresholds.md" },
     { "Errors" = "api/errors.md" },
   ] },
   { "Changelog" = "changelog.md" },

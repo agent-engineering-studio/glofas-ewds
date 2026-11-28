@@ -26,6 +26,7 @@ import numpy.typing as npt
 
 from glofas_ewds._netcdf import netcdf4
 from glofas_ewds.cells import Node, cell_indices, open_meteo_cell
+from glofas_ewds.ensemble import peak_day
 from glofas_ewds.errors import GlofasEwdsError
 from glofas_ewds.request import FORECAST_VARIABLE, HISTORICAL_VARIABLE
 
@@ -168,4 +169,18 @@ def ensemble_members(path: Path, nodes: Sequence[Node]) -> dict[Node, npt.NDArra
     return _forecast_per_node(path, nodes)
 
 
-__all__ = ["discharge_by_day", "discharge_series", "ensemble_members", "forecast_peaks"]
+def forecast_peak_days(path: Path, nodes: Sequence[Node], run: date) -> dict[Node, date | None]:
+    """The day of :func:`forecast_peaks`' peak for each node, for the file of ``run``.
+
+    See :func:`~glofas_ewds.ensemble.peak_day` for which day a lead time is.
+    """
+    return {n: peak_day(v, run) for n, v in _forecast_per_node(path, nodes).items()}
+
+
+__all__ = [
+    "discharge_by_day",
+    "discharge_series",
+    "ensemble_members",
+    "forecast_peak_days",
+    "forecast_peaks",
+]

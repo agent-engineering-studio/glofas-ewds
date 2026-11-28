@@ -10,16 +10,25 @@ from glofas_ewds.download import (
     download_forecast,
     download_history,
 )
-from glofas_ewds.ensemble import exceedance_by_lead, exceedance_probability
+from glofas_ewds.ensemble import exceedance_by_lead, exceedance_probability, peak_day
 from glofas_ewds.errors import GlofasEwdsError
 from glofas_ewds.fwi import FIRE_DATASET, FIRE_VARIABLES, fire_request, fire_values
 from glofas_ewds.glofas import (
     discharge_by_day,
     discharge_series,
     ensemble_members,
+    forecast_peak_days,
     forecast_peaks,
 )
-from glofas_ewds.reference import MIN_REFERENCE_DAYS, discharge_ratio, percentile, references
+from glofas_ewds.reference import (
+    MIN_REFERENCE_DAYS,
+    PEAK_WINDOW_DAYS,
+    discharge_ratio,
+    peak_ratios,
+    percentile,
+    reference_before,
+    references,
+)
 from glofas_ewds.request import (
     CONTROL,
     ENSEMBLE,
@@ -36,14 +45,24 @@ from glofas_ewds.request import (
 )
 from glofas_ewds.return_period import (
     MIN_YEARS,
+    PEAK_TOLERANCE,
     RETURN_PERIODS,
+    FloodLabel,
     annual_maxima,
+    flood_label,
     gumbel_fit,
     return_level,
     return_levels,
 )
+from glofas_ewds.thresholds import (
+    THRESHOLD_URL,
+    flood_thresholds,
+    read_threshold,
+    threshold_file_name,
+    threshold_url,
+)
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "CONTROL",
@@ -59,9 +78,13 @@ __all__ = [
     "ITALY",
     "MIN_REFERENCE_DAYS",
     "MIN_YEARS",
+    "PEAK_TOLERANCE",
+    "PEAK_WINDOW_DAYS",
     "RETURN_PERIODS",
+    "THRESHOLD_URL",
     "Area",
     "EwdsClient",
+    "FloodLabel",
     "GlofasEwdsError",
     "Node",
     "Retriever",
@@ -83,14 +106,23 @@ __all__ = [
     "exceedance_probability",
     "fire_request",
     "fire_values",
+    "flood_label",
+    "flood_thresholds",
+    "forecast_peak_days",
     "forecast_peaks",
     "forecast_request",
     "gumbel_fit",
     "historical_request",
     "months",
     "open_meteo_cell",
+    "peak_day",
+    "peak_ratios",
     "percentile",
+    "read_threshold",
+    "reference_before",
     "references",
     "return_level",
     "return_levels",
+    "threshold_file_name",
+    "threshold_url",
 ]

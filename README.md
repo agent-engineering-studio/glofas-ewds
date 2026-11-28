@@ -264,6 +264,10 @@ issue whose assertion says which fact moved and what to change.
 | `download_ensemble`, `EwdsClient.ensemble`, `ensemble_members` | the 50 perturbed members, as (member, lead time) per node |
 | `exceedance_probability`, `exceedance_by_lead` | the share of members over a threshold, in all and per lead time |
 | `discharge_by_day`, `annual_maxima`, `return_levels` | the 2-, 5-, 20-year flow of a node, from its own reanalysis |
+| `threshold_url`, `read_threshold`, `flood_thresholds` | the official GloFAS v4 2-, 5-, 20-year thresholds of a node's cell, from ECMWF's public files |
+| `flood_label` | a forecast peak as "above the 5-year flood", with the day of the peak |
+| `forecast_peak_days`, `peak_day` | the day a forecast peaks, per node |
+| `reference_before`, `peak_ratios` | a replay: the reference from the days before a window, and the ratio a forecast would have given each day |
 | `candidate_runs(today, latest_saved=None)` | the forecast runs worth trying, newest first |
 | `GlofasEwdsError` | the package's exception |
 

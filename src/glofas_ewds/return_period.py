@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import date
 from typing import Final
 
@@ -32,6 +33,9 @@ MIN_DAYS_PER_YEAR: Final = 330
 MIN_YEARS: Final = 20
 #: The return periods GloFAS reports, in years.
 RETURN_PERIODS: Final = (2, 5, 20)
+#: How far a run's saved peak may be from the peak behind the ratio, as a share
+#: of the larger of the two, for the run's peak day to be that peak's day.
+PEAK_TOLERANCE: Final = 0.01
 
 
 def annual_maxima(
@@ -87,11 +91,66 @@ def return_levels(
     return {p: return_level(location, scale, p) for p in periods}
 
 
+@dataclass(frozen=True, slots=True)
+class FloodLabel:
+    """A forecast peak said in return periods: "above the 5-year flood"."""
+
+    #: The longest return period reached (2, 5 or 20 years); ``None`` when the
+    #: peak is below the 2-year flood.
+    years: int | None
+    #: The forecast peak, in m³/s.
+    peak: float
+    #: The thresholds that were known, ``{years: m³/s}``.
+    thresholds: dict[int, float]
+    #: The day of the peak in the run, when the run is the one behind the ratio.
+    day: date | None = None
+
+
+def flood_label(
+    ratio: float | None,
+    reference: float | None,
+    thresholds: Mapping[int, float | None],
+    forecast: tuple[float, date | None] | None = None,
+    *,
+    tolerance: float = PEAK_TOLERANCE,
+) -> FloodLabel | None:
+    """The forecast peak as a return-period label; ``None`` when a piece is missing.
+
+    The peak is recovered exactly as ``ratio * reference``
+    (:func:`~glofas_ewds.reference.discharge_ratio` undone) and compared with
+    ``thresholds``, ``{years: m³/s}`` for the same cell: the official ones
+    (:func:`~glofas_ewds.thresholds.flood_thresholds`) or your own
+    (:func:`return_levels`). Unknown or non-positive thresholds are ignored.
+    Without a reference or without the 2-year threshold there is no label:
+    "I don't know" is not "below the flood".
+
+    ``forecast`` is ``(peak, day)`` of a saved run. Its day is kept only when
+    its peak is within ``tolerance`` of the recovered one: further apart, the
+    ratio came from another run and the day belongs to another forecast.
+    """
+    if ratio is None or reference is None or reference <= 0:
+        return None
+    known = {years: t for years, t in thresholds.items() if t is not None and t > 0}
+    if RETURN_PERIODS[0] not in known:
+        return None
+    peak = ratio * reference
+    reached = [years for years, t in known.items() if peak >= t]
+    day = None
+    if forecast is not None and forecast[1] is not None:
+        saved = forecast[0]
+        if abs(saved - peak) <= tolerance * max(saved, peak, 1.0):
+            day = forecast[1]
+    return FloodLabel(years=max(reached) if reached else None, peak=peak, thresholds=known, day=day)
+
+
 __all__ = [
     "MIN_DAYS_PER_YEAR",
     "MIN_YEARS",
+    "PEAK_TOLERANCE",
     "RETURN_PERIODS",
+    "FloodLabel",
     "annual_maxima",
+    "flood_label",
     "gumbel_fit",
     "return_level",
     "return_levels",
