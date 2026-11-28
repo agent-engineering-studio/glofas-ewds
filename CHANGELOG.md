@@ -6,12 +6,6 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-### Changed
-
-- The documentation site is built with [Zensical](https://zensical.org)
-  (`zensical.toml`) instead of MkDocs; `mkdocs.yml` and `mkdocs-material` are
-  gone. Same pages, same URLs.
-
 ## [0.3.0] - 2026-11-28
 
 > The processing logic that lived in Limen, moved here. Every function below
@@ -37,6 +31,12 @@ All notable changes to this project are documented here. The format follows
 - `reference_before` and `peak_ratios` (`reference`), for a replay: a node's
   reference from the days before a window only, and for each day the peak of
   the next `PEAK_WINDOW_DAYS` over that reference.
+
+### Changed
+
+- The documentation site is built with [Zensical](https://zensical.org)
+  (`zensical.toml`) instead of MkDocs; `mkdocs.yml` and `mkdocs-material` are
+  gone. Same pages, same URLs.
 
 ## [0.2.0] - 2026-11-05
 
