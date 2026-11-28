@@ -15,6 +15,8 @@ threshold, the answer is ``None``: "I don't know", never "0 %".
 
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import numpy as np
 import numpy.typing as npt
 
@@ -60,4 +62,18 @@ def exceedance_by_lead(members: npt.ArrayLike, threshold: float | None) -> list[
         return [float(x) for x in np.where(voters > 0, over / np.maximum(voters, 1), np.nan)]
 
 
-__all__ = ["exceedance_by_lead", "exceedance_probability"]
+def peak_day(members: npt.ArrayLike, run: date) -> date | None:
+    """The day of the highest value of a (member, lead time) forecast of ``run``.
+
+    The k-th lead time (``leadtime_hour`` 24·(k+1)) is the mean of the day
+    ``run + k``: the GloFAS ``valid_time`` is the end of the day. A single
+    series (lead time only) is one member. ``None`` when everything is masked.
+    """
+    a = np.atleast_2d(np.asarray(members, dtype=float))
+    by_lead = np.max(np.where(np.isfinite(a), a, -np.inf), axis=0)
+    if not np.isfinite(by_lead).any():
+        return None
+    return run + timedelta(days=int(np.argmax(by_lead)))
+
+
+__all__ = ["exceedance_by_lead", "exceedance_probability", "peak_day"]

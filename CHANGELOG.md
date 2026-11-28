@@ -6,6 +6,32 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-28
+
+> The processing logic that lived in Limen, moved here. Every function below
+> gives Limen's numbers on fixed inputs (`tests/test_limen_parity.py`).
+> Nothing that existed changed; `import glofas_ewds` still needs only numpy.
+
+### Added
+
+- `flood_label` and `FloodLabel` (`return_period`): a forecast peak as a
+  return-period label, "above the 5-year flood". The peak is recovered as
+  ratio times reference and compared with the thresholds of the same cell;
+  without a reference or the 2-year threshold there is no label. The day of
+  a saved run's peak is kept only within `PEAK_TOLERANCE` of the recovered
+  peak.
+- `glofas_ewds.thresholds`: the official GloFAS v4 thresholds, which the EWDS
+  does not serve and ECMWF publishes as three public NetCDF files.
+  `threshold_file_name` and `threshold_url` say where they are;
+  `read_threshold` and `flood_thresholds` (extra `netcdf`) read them in the
+  cell `open_meteo_cell` chooses, only over the rectangle of your nodes.
+  The download is yours.
+- `peak_day` (`ensemble`) and `forecast_peak_days` (`glofas`): the day a
+  forecast peaks. Lead time k is the day `run + k`.
+- `reference_before` and `peak_ratios` (`reference`), for a replay: a node's
+  reference from the days before a window only, and for each day the peak of
+  the next `PEAK_WINDOW_DAYS` over that reference.
+
 ### Changed
 
 - The documentation site is built with [Zensical](https://zensical.org)
